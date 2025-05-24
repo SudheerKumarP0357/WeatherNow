@@ -13,7 +13,7 @@ export interface UserPreferences {
 }
 
 export type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading';
-
+export type LocationErrorType = 'DENIED' | 'TIMEOUT' | 'UNAVAILABLE' | 'UNKNOWN' | null;
 // Weather related types
 export interface WeatherData {
   current: CurrentWeather;

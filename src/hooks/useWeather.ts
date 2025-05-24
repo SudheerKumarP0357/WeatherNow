@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { WeatherData, Location } from '../types';
+import { WeatherData, Location, LocationErrorType } from '../types';
 import { fetchWeatherByCoordinates, getLocationByCoordinates } from '../utils/api';
 import { getUserPreferences } from '../utils/storage';
 import { getCurrentPosition } from '../utils/helpers';
+
 
 interface UseWeatherOptions {
   lat?: number;
@@ -15,6 +16,7 @@ interface UseWeatherResult {
   weatherData: WeatherData | null;
   loading: boolean;
   error: string | null;
+  locationError: LocationErrorType; 
   refreshWeather: () => Promise<void>;
 }
 
@@ -22,12 +24,14 @@ export default function useWeather(options: UseWeatherOptions = {}): UseWeatherR
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState<LocationErrorType>(null);
   
   const { lat, lon, locationId, skipAutoLocation } = options;
   
   const fetchWeather = async () => {
     setLoading(true);
     setError(null);
+    setLocationError(null);
     
     try {
       const preferences = getUserPreferences();
@@ -58,13 +62,20 @@ export default function useWeather(options: UseWeatherOptions = {}): UseWeatherR
         } catch (geoError) {
           if (geoError instanceof Error) {
             if (geoError.message.includes('denied')) {
+              setLocationError('DENIED');
               throw new Error('Location access denied. Please enable location services or search for a specific city.');
             } else if (geoError.message.includes('timeout')) {
+              setLocationError('TIMEOUT');
               throw new Error('Location request timed out. Please try again or search for a specific city.');
             } else if (geoError.message.includes('unavailable')) {
+              setLocationError('UNAVAILABLE');
               throw new Error('Location services are not available. Please search for a specific city.');
+            } else {
+              setLocationError('UNKNOWN');
+              throw new Error('An unexpected error occurred while getting your location.');
             }
           }
+          setLocationError('UNKNOWN');
           throw geoError;
         }
       }
@@ -84,5 +95,5 @@ export default function useWeather(options: UseWeatherOptions = {}): UseWeatherR
     await fetchWeather();
   };
   
-  return { weatherData, loading, error, refreshWeather };
+  return { weatherData, loading, error,locationError, refreshWeather };
 }

@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { Location, WeatherData, LocationSuggestion } from '../types';
+import { getEnv } from './env';
 // In a production environment, this would be handled securely through environment variables
 // and a backend proxy to protect the API key
-// Get API key from environment variables
-const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+const API_KEY = getEnv().VITE_OPENWEATHER_API_KEY || "1e5f19d2d0cc13284ed9495b14297e18";
 
 if (!API_KEY) {
   throw new Error('OpenWeather API key is not configured. Please add VITE_OPENWEATHER_API_KEY to your .env file.');
