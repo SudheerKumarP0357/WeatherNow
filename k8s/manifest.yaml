@@ -1,0 +1,73 @@
+# namespace creation
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: weather-now
+
+---
+# API KEY secret
+apiVersion: v1
+kind: Secret
+metadata: 
+  name: weather-now-secrets
+  namespace: weather-now
+type: Opaque
+data:
+  VITE_OPENWEATHER_API_KEY: MWU1ZjE5ZDJkMGNjMTMyODRlZDk0OTViMTQyOTdlMTgK
+
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-now-svc
+  namespace: weather-now
+spec:
+  selector:
+    app: weather-now
+    tier: frontend
+  ports:
+  - port: 8080
+    targetPort: 80
+
+---
+# Deployment 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: weather-now
+  name: weather-now
+  labels:
+    app: weather-now
+    tier: frontend
+spec:
+  selector:
+    matchLabels:
+      app: weather-now
+      tier: frontend
+  template:
+    metadata:
+        name: weather-now
+        labels:
+          app: weather-now
+          tier: frontend
+    spec:
+      containers:
+      - name: weather-now
+        image: sudheer0357/weathernow:v1
+        resources:
+          limits:
+            memory: "100Mi"
+            cpu: "100m"
+          requests:
+            memory: "50Mi"
+            cpu: "50m"
+        ports:
+        - containerPort: 80
+        env:
+         - name: VITE_OPENWEATHER_API_KEY
+           valueFrom:
+             secretKeyRef:
+              name: weather-now-secrets
+              key: VITE_OPENWEATHER_API_KEY
+---
